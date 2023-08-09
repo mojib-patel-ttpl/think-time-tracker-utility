@@ -34,8 +34,7 @@ public class TimeTrackerDemoApplication {
 			// Save the workbook to the specified output file
 			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy:MM:dd_HH:mm:ss");
 			String currentDate = dateFormat.format(new Date());
-			String outputFileName = "converted_" + currentDate + ".xlsx";
-//			String outputFileName = "converted.xlsx";
+			String outputFileName = "Report_" + currentDate + ".xlsx";
 			String folderName = "employee_xlsx_reports";
 			excelUtility.saveWorkbook(workbook, folderName, outputFileName);
 

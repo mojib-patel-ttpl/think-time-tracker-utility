@@ -42,7 +42,7 @@ public class EmployeeDetails {
 
     private String inTimeActual;
 
-    private boolean less540Actual;
+    private boolean less540Actual = false;
 
     private String firstSwipe;
 

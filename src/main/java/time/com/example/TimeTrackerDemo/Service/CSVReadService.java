@@ -174,19 +174,23 @@ public class CSVReadService {
         employeeDetails.setInTimeFL(formatTime(totalOfficeTimeMillis));
         // convert into minutes
         long inTimeFLMinutes = totalOfficeTimeMillis / TIME;
-        if (inTimeFLMinutes < inTimeActual) {
+        if (inTimeFLMinutes < 540) {
             employeeDetails.setLess540FL(LESS_540_FL);
+        }else {
+            employeeDetails.setLess540FL(false);
         }
         employeeDetails.setSwipeCount(swipeDetails.size());
-        if (swipeDetails.size() < lowSwipes)
+
+        if (swipeDetails.size() < 6 )
             employeeDetails.setLowSwipes(true);
 
-        if (swipeDetails.size() > highSwipes)
+        if (swipeDetails.size() > 10 )
             employeeDetails.setHighSwipes(true);
 
     }
 
     private static void handleSingleSwipe(List<String> swipeDetails, EmployeeDetails employeeDetails) {
+
         employeeDetails.setFirstSwipe(swipeDetails.get(0));
         employeeDetails.setLastSwipe("00:00:00");
         employeeDetails.setSwipeCount(swipeDetails.size());
@@ -258,7 +262,8 @@ public class CSVReadService {
 
             // convert into minutes
             long totalInTimeMinutes = totalInTime / TIME;
-            if (totalInTimeMinutes < inTimeActual) employeeDetails.setLess540Actual(true);
+
+            if (totalInTimeMinutes < 540 ) employeeDetails.setLess540Actual(true);
 
         } catch (ParseException e) {
             log.error("Error while calculating time" + e);
