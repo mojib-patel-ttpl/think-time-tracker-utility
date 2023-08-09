@@ -7,12 +7,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-import time.com.example.TimeTrackerDemo.CustomException.ErrorResponse;
 import time.com.example.TimeTrackerDemo.Model.EmployeeDetails;
 
 import java.io.*;
@@ -297,11 +294,12 @@ public class CSVReadService {
     }
 
 
-    public ResponseEntity<?> convertExcelToCsv(MultipartFile file) {
+    public XSSFWorkbook convertExcelToCsv(File file) {
 
         try {
             // Read Excel file and convert to CSV format
-            Workbook workbook = new XSSFWorkbook(file.getInputStream());
+            FileInputStream inputStream = new FileInputStream(file);
+            Workbook workbook = new XSSFWorkbook(inputStream);
 
             Sheet sheet = workbook.getSheetAt(0);
 
@@ -329,21 +327,12 @@ public class CSVReadService {
             // Convert CSV response to XLSX response
             XSSFWorkbook xlsxWorkbook = convertCsvToXlsx(csvResponse.getBody().getInputStream());
 
-            ByteArrayOutputStream xlsxOutputStream = new ByteArrayOutputStream();
-            xlsxWorkbook.write(xlsxOutputStream);
-            InputStreamResource xlsxResource = new InputStreamResource(new ByteArrayInputStream(xlsxOutputStream.toByteArray()));
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=converted.xlsx");
-
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                    .body(xlsxResource);
+            return xlsxWorkbook;
 
         } catch (IOException e) {
-            ErrorResponse errorResponse = new ErrorResponse("Error converting Excel to CSV: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            log.error("Error while converting excel to csv: "+e.getMessage());
+            e.printStackTrace();
+            return null;
         }
     }
 
