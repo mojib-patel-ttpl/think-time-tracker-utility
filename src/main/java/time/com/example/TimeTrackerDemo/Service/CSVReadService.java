@@ -36,6 +36,7 @@ public class CSVReadService {
     @Value("${in.time.fl}")
     private int inTimeFL;
 
+
     public ResponseEntity<InputStreamResource> readCsvFile(InputStream inputStream) {
 
         List<EmployeeDetails> employees = new ArrayList<>();
@@ -53,8 +54,14 @@ public class CSVReadService {
             while ((line = br.readLine()) != null) {
 
                 line = String.valueOf(replaceDoubleQuotes(line));
+
                 String[] data = line.split(",", -1);
 
+                // Check if data is null or has insufficient elements
+                if (data == null || data.length == 1) {
+                    // Handle incomplete data
+                    break;
+                }
                 String employeeCode = data[0];
                 String swipeDate = data[11];
 
@@ -72,7 +79,6 @@ public class CSVReadService {
                     for (int i = 14; i < data.length - 1; i++) {
                         swipeDetailsList.add(data[i].trim());
                     }
-
                     calculateTimeDetails(swipeDetailsList, employeeDetails);
                     calculateTotalOfficeTime(swipeDetailsList, employeeDetails);
                     employeeDetails.setSwipeDetails(swipeDetailsList);
