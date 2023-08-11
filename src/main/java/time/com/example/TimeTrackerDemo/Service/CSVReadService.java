@@ -16,6 +16,7 @@ import java.io.*;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalTime;
 import java.util.*;
 
 import static time.com.example.TimeTrackerDemo.Constant.APIConstant.*;
@@ -144,10 +145,8 @@ public class CSVReadService {
             try {
                 if (swipeDetails.size() == 1)
                     handleSingleSwipe(swipeDetails, employeeDetails);
-
                 if (swipeDetails.size() >= 2)
                     handleMultipleSwipes(swipeDetails, employeeDetails, sdf);
-
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -158,8 +157,13 @@ public class CSVReadService {
     }
 
     private static void handleEmptySwipes(EmployeeDetails employeeDetails) {
-        employeeDetails.setTotalTime("00:00:00");
-        employeeDetails.setInTimeFL("00:00:00");
+
+        employeeDetails.setTotalTime("0");
+        // Set in Time FL in minute
+        employeeDetails.setInTimeFL("0");
+        employeeDetails.setFlagForFirstSwipeAfter11AM(false);
+        employeeDetails.setFlagForLastSwipeAfter10PM(false);
+        employeeDetails.setInTimeActualVsInTimeFLDiff("0");
         employeeDetails.setSwipeCount(0);
         employeeDetails.setLess540FL(true);
         employeeDetails.setHighSwipes(false);
@@ -176,32 +180,101 @@ public class CSVReadService {
         long totalOfficeTimeMillis = lastPunchIn.getTime() - firstPunchIn.getTime();
 
         employeeDetails.setTotalTime(formatTime(totalOfficeTimeMillis));
-        // Set In Time FL
-        employeeDetails.setInTimeFL(formatTime(totalOfficeTimeMillis));
+
+        // Check First swipe after 11 AM
+        LocalTime elevenAM = LocalTime.of(11, 0, 0);
+        // Check last swipe is after the 10:00PM : 22:00:00
+        LocalTime tenPM = LocalTime.of(22, 0, 0);
+
+        if (Objects.nonNull(swipeDetails) && !swipeDetails.isEmpty()) {
+
+            String firstSwipe = swipeDetails.get(0);
+            if (!firstSwipe.isEmpty()) {
+                // Parse the first swipe
+                LocalTime firstSwipeTargetTime = LocalTime.parse(firstSwipe);
+                // Compare the target time with 11 AM
+                if (firstSwipeTargetTime.isAfter(elevenAM))
+                    employeeDetails.setFlagForFirstSwipeAfter11AM(true);
+                else
+                    employeeDetails.setFlagForFirstSwipeAfter11AM(false);
+            }
+
+            String lastSwipe = swipeDetails.get(swipeDetails.size() - 1);
+            if (!lastSwipe.isEmpty()) {
+                // Parse the last swipe
+                LocalTime lastSwipeTargetTime = LocalTime.parse(lastSwipe);
+                // Compare the target time with 10 PM
+                if (lastSwipeTargetTime.isAfter(tenPM))
+                    employeeDetails.setFlagForLastSwipeAfter10PM(true);
+                else
+                    employeeDetails.setFlagForLastSwipeAfter10PM(false);
+            } else
+                employeeDetails.setFlagForLastSwipeAfter10PM(false);
+        } else {
+            employeeDetails.setFlagForFirstSwipeAfter11AM(false);
+            employeeDetails.setFlagForLastSwipeAfter10PM(false);
+        }
+
         // convert into minutes
         long inTimeFLMinutes = totalOfficeTimeMillis / TIME;
-        if (inTimeFLMinutes < 540) {
-            employeeDetails.setLess540FL(LESS_540_FL);
-        }else {
+        long absoluteInTimeFLMinutes = Math.abs(inTimeFLMinutes);  // handle negative values
+        // Set In Time FL in Minutes
+        employeeDetails.setInTimeFL(String.valueOf(absoluteInTimeFLMinutes));
+
+        // Set difference between In Time Actual and In Time FL
+        long inTimeActualVsInTimeFLDiffMinutes = employeeDetails.getTotalInTime() - inTimeFLMinutes;
+        long absoluteDiffMinutes = Math.abs(inTimeActualVsInTimeFLDiffMinutes);
+
+        employeeDetails.setInTimeActualVsInTimeFLDiff(String.valueOf(absoluteDiffMinutes));
+
+        if (inTimeFLMinutes < 540)
+            employeeDetails.setLess540FL(true);
+        else
             employeeDetails.setLess540FL(false);
-        }
+
         employeeDetails.setSwipeCount(swipeDetails.size());
 
-        if (swipeDetails.size() < 6 )
+        if (swipeDetails.size() < 6)
             employeeDetails.setLowSwipes(true);
+        else
+            employeeDetails.setLowSwipes(false);
 
-        if (swipeDetails.size() > 10 )
+        if (swipeDetails.size() > 10)
             employeeDetails.setHighSwipes(true);
+        else
+            employeeDetails.setHighSwipes(false);
 
     }
 
     private static void handleSingleSwipe(List<String> swipeDetails, EmployeeDetails employeeDetails) {
 
         employeeDetails.setFirstSwipe(swipeDetails.get(0));
+
+        LocalTime elevenAM = LocalTime.of(11, 0, 0);
+        // Parse the first swipe
+        if (Objects.nonNull(swipeDetails) && !swipeDetails.isEmpty()) {
+            String firstSwipe = swipeDetails.get(0);
+            if (!firstSwipe.isEmpty()) {
+                LocalTime targetTime = LocalTime.parse(firstSwipe);
+                // Compare the target time with 11 AM
+                if (targetTime.isAfter(elevenAM))
+                    employeeDetails.setFlagForFirstSwipeAfter11AM(true);
+                else
+                    employeeDetails.setFlagForFirstSwipeAfter11AM(false);
+            } else {
+                employeeDetails.setFlagForFirstSwipeAfter11AM(false);
+                employeeDetails.setFlagForLastSwipeAfter10PM(false);
+            }
+        } else {
+            employeeDetails.setFlagForFirstSwipeAfter11AM(false);
+            employeeDetails.setFlagForLastSwipeAfter10PM(false);
+        }
         employeeDetails.setLastSwipe("00:00:00");
         employeeDetails.setSwipeCount(swipeDetails.size());
-        employeeDetails.setTotalTime("00:00:00");
-        employeeDetails.setInTimeFL("00:00:00");
+        employeeDetails.setTotalTime("0");
+        // Set In time FL in minutes
+        employeeDetails.setInTimeFL("0");
+        employeeDetails.setInTimeActualVsInTimeFLDiff("0");
         employeeDetails.setLess540FL(true);
         employeeDetails.setLowSwipes(true);
         employeeDetails.setHighSwipes(false);
@@ -263,13 +336,19 @@ public class CSVReadService {
                 }
                 totalInTime += punchOut.getTime() - punchIn.getTime();
             }
-            employeeDetails.setTotalInTime(formatTime(totalInTime));
             employeeDetails.setTotalOutTime(formatTime(totalOutTime));
-
             // convert into minutes
             long totalInTimeMinutes = totalInTime / TIME;
 
-            if (totalInTimeMinutes < 540 ) employeeDetails.setLess540Actual(true);
+            long absoluteTotalInTimeMinutes = Math.abs(totalInTimeMinutes);  // handle negative values
+            // Set In TimeActual In Minutes
+            employeeDetails.setTotalInTime(absoluteTotalInTimeMinutes);
+
+            if (totalInTimeMinutes < 540) {
+                employeeDetails.setLess540Actual(true);
+            } else {
+                employeeDetails.setLess540Actual(false);
+            }
 
         } catch (ParseException e) {
             log.error("Error while calculating time" + e);
@@ -291,13 +370,26 @@ public class CSVReadService {
 
         // Write CSV header column
         String[] header = {"EmployeeCode", "Employee Name", "Date of Joining", "EmployeeStatus", "BusinessUnit", "City", "Company", "Department", "Designation", "Location", "State", "Employee Card Number", "Date", "Swipes count", "In Time-Actual", "Less 540-Actual",
-                "First swipe", "Last Swipe", "In Time-FL", "Less 540-FL", "Low Swipes", "High Swipes", "Odd swipes"};
+                "First swipe", "Last Swipe", "In Time-FL", "Less 540-FL", "Low Swipes", "High Swipes", "Odd swipes", "First Swipe After 11:00AM", "Last Swipe After 10:00PM", "InTimeActual Vs InTimeFL Diff", "Swipe Details"};
+
         csvWriter.writeNext(header);
 
         // Write data in rows
         for (EmployeeDetails item : data) {
-            String[] row = {item.getEmployeeCode(), item.getEmployeeName(), item.getDateOfJoining(), item.getEmployeeStatus(), item.getBusinessUnit(), item.getCity(), item.getCompany(), item.getDepartment(), item.getDesignation(), item.getLocation(), item.getState(), item.getEmployeeCardNumber(), item.getSwipeDate(), String.valueOf(item.getSwipeCount()), item.getTotalInTime(), String.valueOf(item.isLess540Actual()), item.getFirstSwipe(),
-                    item.getLastSwipe(), item.getInTimeFL(), String.valueOf(item.isLess540FL()), String.valueOf(item.isLowSwipes()), String.valueOf(item.isHighSwipes()), String.valueOf(item.isOddSwipes())};
+
+            List<String> swipeDetails = item.getSwipeDetails();
+            StringBuilder swipeDetailsStringBuilder = new StringBuilder();
+
+            if (Objects.nonNull(swipeDetails) && !swipeDetails.isEmpty()) {
+                for (String swipe : swipeDetails) {
+                    swipeDetailsStringBuilder.append(swipe).append("  ");
+                }
+            }
+
+            String[] row = {item.getEmployeeCode(), item.getEmployeeName(), item.getDateOfJoining(), item.getEmployeeStatus(), item.getBusinessUnit(), item.getCity(), item.getCompany(), item.getDepartment(), item.getDesignation(), item.getLocation(), item.getState(), item.getEmployeeCardNumber(), item.getSwipeDate(), String.valueOf(item.getSwipeCount()), String.valueOf(item.getTotalInTime()), String.valueOf(item.isLess540Actual()), item.getFirstSwipe(),
+                    item.getLastSwipe(), item.getInTimeFL(), String.valueOf(item.isLess540FL()), String.valueOf(item.isLowSwipes()), String.valueOf(item.isHighSwipes()), String.valueOf(item.isOddSwipes()),
+                    String.valueOf(item.isFlagForFirstSwipeAfter11AM()), String.valueOf(item.isFlagForLastSwipeAfter10PM()), item.getInTimeActualVsInTimeFLDiff(), swipeDetailsStringBuilder.toString()};  // item.getSwipeDetails().toString()
+
             csvWriter.writeNext(row);
         }
         csvWriter.close();
@@ -341,7 +433,7 @@ public class CSVReadService {
             return xlsxWorkbook;
 
         } catch (IOException e) {
-            log.error("Error while converting excel to csv: "+e.getMessage());
+            log.error("Error while converting excel to csv: " + e.getMessage());
             e.printStackTrace();
             return null;
         }

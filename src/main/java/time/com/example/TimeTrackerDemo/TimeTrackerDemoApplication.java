@@ -19,7 +19,6 @@ public class TimeTrackerDemoApplication {
 			System.out.println("Usage: java -jar YourJarName.jar <file-path>");
 			return;
 		}
-
 		String filePath = args[0];
 		File inputFile = new File(filePath);
 
@@ -29,6 +28,7 @@ public class TimeTrackerDemoApplication {
 		}else{
 			ExcelUtility excelUtility = new ExcelUtility();
 			CSVReadService csvReadService = new CSVReadService();
+
 			XSSFWorkbook workbook = csvReadService.convertExcelToCsv(inputFile);
 
 			// Save the workbook to the specified output file
@@ -37,7 +37,6 @@ public class TimeTrackerDemoApplication {
 			String outputFileName = "Report_" + currentDate + ".xlsx";
 			String folderName = "employee_xlsx_reports";
 			excelUtility.saveWorkbook(workbook, folderName, outputFileName);
-
 		}
 		SpringApplication.run(TimeTrackerDemoApplication.class, args);
 	}
