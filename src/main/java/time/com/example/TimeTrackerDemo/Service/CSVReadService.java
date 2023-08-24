@@ -344,10 +344,11 @@ public class CSVReadService {
             // Set In TimeActual In Minutes
             employeeDetails.setTotalInTime(absoluteTotalInTimeMinutes);
 
-            if (totalInTimeMinutes < 540) {
-                employeeDetails.setLess540Actual(true);
+            // Total in time 480 minutes/ 8 hours
+            if (totalInTimeMinutes < 480) {
+                employeeDetails.setLess480Actual(true);
             } else {
-                employeeDetails.setLess540Actual(false);
+                employeeDetails.setLess480Actual(false);
             }
 
         } catch (ParseException e) {
@@ -369,7 +370,7 @@ public class CSVReadService {
         CSVWriter csvWriter = new CSVWriter(stringWriter);
 
         // Write CSV header column
-        String[] header = {"EmployeeCode", "Employee Name", "Date of Joining", "EmployeeStatus", "BusinessUnit", "City", "Company", "Department", "Designation", "Location", "State", "Employee Card Number", "Date", "Swipes count", "In Time-Actual", "Less 540-Actual",
+        String[] header = {"EmployeeCode", "Employee Name", "Date of Joining", "EmployeeStatus", "BusinessUnit", "City", "Company", "Department", "Designation", "Location", "State", "Employee Card Number", "Date", "Swipes count", "In Time-Actual", "Less 480-Actual",
                 "First swipe", "Last Swipe", "In Time-FL", "Less 540-FL", "Low Swipes", "High Swipes", "Odd swipes", "First Swipe After 11:00AM", "Last Swipe After 10:00PM", "InTimeActual Vs InTimeFL Diff", "Swipe Details"};
 
         csvWriter.writeNext(header);
@@ -386,7 +387,7 @@ public class CSVReadService {
                 }
             }
 
-            String[] row = {item.getEmployeeCode(), item.getEmployeeName(), item.getDateOfJoining(), item.getEmployeeStatus(), item.getBusinessUnit(), item.getCity(), item.getCompany(), item.getDepartment(), item.getDesignation(), item.getLocation(), item.getState(), item.getEmployeeCardNumber(), item.getSwipeDate(), String.valueOf(item.getSwipeCount()), String.valueOf(item.getTotalInTime()), String.valueOf(item.isLess540Actual()), item.getFirstSwipe(),
+            String[] row = {item.getEmployeeCode(), item.getEmployeeName(), item.getDateOfJoining(), item.getEmployeeStatus(), item.getBusinessUnit(), item.getCity(), item.getCompany(), item.getDepartment(), item.getDesignation(), item.getLocation(), item.getState(), item.getEmployeeCardNumber(), item.getSwipeDate(), String.valueOf(item.getSwipeCount()), String.valueOf(item.getTotalInTime()), String.valueOf(item.isLess480Actual()), item.getFirstSwipe(),
                     item.getLastSwipe(), item.getInTimeFL(), String.valueOf(item.isLess540FL()), String.valueOf(item.isLowSwipes()), String.valueOf(item.isHighSwipes()), String.valueOf(item.isOddSwipes()),
                     String.valueOf(item.isFlagForFirstSwipeAfter11AM()), String.valueOf(item.isFlagForLastSwipeAfter10PM()), item.getInTimeActualVsInTimeFLDiff(), swipeDetailsStringBuilder.toString()};  // item.getSwipeDetails().toString()
 

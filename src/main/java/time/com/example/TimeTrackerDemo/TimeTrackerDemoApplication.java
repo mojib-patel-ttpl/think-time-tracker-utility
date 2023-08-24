@@ -32,7 +32,7 @@ public class TimeTrackerDemoApplication {
 			XSSFWorkbook workbook = csvReadService.convertExcelToCsv(inputFile);
 
 			// Save the workbook to the specified output file
-			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy:MM:dd_HH:mm:ss");
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
 			String currentDate = dateFormat.format(new Date());
 			String outputFileName = "Report_" + currentDate + ".xlsx";
 			String folderName = "employee_xlsx_reports";
