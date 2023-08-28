@@ -66,7 +66,8 @@ public class CSVReadService {
                 String employeeCode = data[0];
                 String swipeDate = data[11];
 
-                if (previousEmployee != null && previousEmployee.getEmployeeCode().equals(employeeCode) && previousEmployee.getSwipeDate().equals(swipeDate)) {
+                // 1. If employee swipe date and employee code same then merge swipe details
+                if ((previousEmployee != null && previousEmployee.getEmployeeCode().equals(employeeCode) && previousEmployee.getSwipeDate().equals(swipeDate))) {
                     // Combine record
                     mergeEmployeeData(previousEmployee, data);
                 } else {
@@ -80,6 +81,9 @@ public class CSVReadService {
                     for (int i = 14; i < data.length - 1; i++) {
                         swipeDetailsList.add(data[i].trim());
                     }
+                    // Sort the swipeDetails in ascending order
+                    Collections.sort(swipeDetailsList);
+
                     calculateTimeDetails(swipeDetailsList, employeeDetails);
                     calculateTotalOfficeTime(swipeDetailsList, employeeDetails);
                     employeeDetails.setSwipeDetails(swipeDetailsList);
@@ -114,8 +118,9 @@ public class CSVReadService {
             swipeDetailsList.add(data[i].trim());
         }
         List<String> existingSwipeDetails = new ArrayList<>(previousEmployee.getSwipeDetails());
-
         existingSwipeDetails.addAll(swipeDetailsList);
+        // Sort the existingSwipeDetails in ascending order
+        Collections.sort(existingSwipeDetails);
         // Recalculate time details and total office time
         calculateTimeDetails(existingSwipeDetails, previousEmployee);
         calculateTotalOfficeTime(existingSwipeDetails, previousEmployee);
@@ -135,6 +140,7 @@ public class CSVReadService {
         employeeDetails.setDesignation(data[8]);
         employeeDetails.setLocation(data[9]);
         employeeDetails.setState(data[10]);
+        employeeDetails.setEmployeeDeviceNumber((data[13]));
 
         employeeDetails.setSwipeDate(swipeDate);
     }

@@ -69,4 +69,6 @@ public class EmployeeDetails {
 
     private String inTimeActualVsInTimeFLDiff;
 
+    private String employeeDeviceNumber;
+
 }
