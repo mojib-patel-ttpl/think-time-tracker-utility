@@ -41,7 +41,7 @@ public class EmployeeDetails {
 
     private int swipeCount;
 
-    private boolean less480Actual = false;
+    private boolean less540Actual = false; 
 
     private String firstSwipe;
 

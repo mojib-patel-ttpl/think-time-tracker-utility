@@ -29,6 +29,7 @@ public class TimeTrackerDemoApplication {
 			ExcelUtility excelUtility = new ExcelUtility();
 			CSVReadService csvReadService = new CSVReadService();
 
+			// Step 0 : Convert .XLSX file into .CSV file
 			XSSFWorkbook workbook = csvReadService.convertExcelToCsv(inputFile);
 
 			// Save the workbook to the specified output file

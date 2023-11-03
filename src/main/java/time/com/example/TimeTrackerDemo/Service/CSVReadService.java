@@ -44,12 +44,14 @@ public class CSVReadService {
         HttpHeaders headers = new HttpHeaders();
         InputStreamResource resource = null;
 
+        // Step 2 : Read CSV and extract data
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
             String line;
 
+            // Step 3 : Skip the first 2 rows: empty spaces, headers
             for (int i = 0; i < 2; i++) {
-                br.readLine(); // Skip the first 2 (empty spaces, headers)
+                br.readLine();
             }
             EmployeeDetails previousEmployee = null;
             while ((line = br.readLine()) != null) {
@@ -83,6 +85,8 @@ public class CSVReadService {
                     }
                     // Sort the swipeDetails in ascending order
                     Collections.sort(swipeDetailsList);
+
+                    // Step 4: Calculate Times
 
                     calculateTimeDetails(swipeDetailsList, employeeDetails);
                     calculateTotalOfficeTime(swipeDetailsList, employeeDetails);
@@ -314,10 +318,10 @@ public class CSVReadService {
         if (!(swipeDetailsList.isEmpty() || swipeDetailsList.contains(SWIPE_DETAILS) || swipeDetailsList.equals(Collections.singletonList(EMPTY_SWIPE)))) {
             if (swipeDetailsList.size() % 2 == 0) {
                 employeeDetails.setOddSwipes(false);
-                // For even entry
+                // Step 5: For even entry
                 calculateTime(swipeDetailsList, employeeDetails);
             } else {
-                // For odd entry
+                // Step 6: For odd entry
                 List<String> swipeDetailsList1 = new ArrayList<>(swipeDetailsList);
                 swipeDetailsList1.remove(swipeDetailsList1.size() - 1);
                 employeeDetails.setOddSwipes(true);
@@ -350,11 +354,11 @@ public class CSVReadService {
             // Set In TimeActual In Minutes
             employeeDetails.setTotalInTime(absoluteTotalInTimeMinutes);
 
-            // Total in time 480 minutes/ 8 hours
-            if (totalInTimeMinutes < 480) {
-                employeeDetails.setLess480Actual(true);
+            // Total in time 540 minutes/ 9 hours
+            if (totalInTimeMinutes < 540) {
+                employeeDetails.setLess540Actual(true);
             } else {
-                employeeDetails.setLess480Actual(false);
+                employeeDetails.setLess540Actual(false);
             }
 
         } catch (ParseException e) {
@@ -376,7 +380,7 @@ public class CSVReadService {
         CSVWriter csvWriter = new CSVWriter(stringWriter);
 
         // Write CSV header column
-        String[] header = {"EmployeeCode", "Employee Name", "Date of Joining", "EmployeeStatus", "BusinessUnit", "City", "Company", "Department", "Designation", "Location", "State", "Employee Card Number", "Date", "Swipes count", "In Time-Actual", "Less 480-Actual",
+        String[] header = {"EmployeeCode", "Employee Name", "Date of Joining", "EmployeeStatus", "BusinessUnit", "City", "Company", "Department", "Designation", "Location", "State", "Employee Card Number", "Date", "Swipes count", "In Time-Actual", "Less 540-Actual",
                 "First swipe", "Last Swipe", "In Time-FL", "Less 540-FL", "Low Swipes", "High Swipes", "Odd swipes", "First Swipe After 11:00AM", "Last Swipe After 10:00PM", "InTimeActual Vs InTimeFL Diff", "Swipe Details"};
 
         csvWriter.writeNext(header);
@@ -393,7 +397,7 @@ public class CSVReadService {
                 }
             }
 
-            String[] row = {item.getEmployeeCode(), item.getEmployeeName(), item.getDateOfJoining(), item.getEmployeeStatus(), item.getBusinessUnit(), item.getCity(), item.getCompany(), item.getDepartment(), item.getDesignation(), item.getLocation(), item.getState(), item.getEmployeeCardNumber(), item.getSwipeDate(), String.valueOf(item.getSwipeCount()), String.valueOf(item.getTotalInTime()), String.valueOf(item.isLess480Actual()), item.getFirstSwipe(),
+            String[] row = {item.getEmployeeCode(), item.getEmployeeName(), item.getDateOfJoining(), item.getEmployeeStatus(), item.getBusinessUnit(), item.getCity(), item.getCompany(), item.getDepartment(), item.getDesignation(), item.getLocation(), item.getState(), item.getEmployeeCardNumber(), item.getSwipeDate(), String.valueOf(item.getSwipeCount()), String.valueOf(item.getTotalInTime()), String.valueOf(item.isLess540Actual()), item.getFirstSwipe(),
                     item.getLastSwipe(), item.getInTimeFL(), String.valueOf(item.isLess540FL()), String.valueOf(item.isLowSwipes()), String.valueOf(item.isHighSwipes()), String.valueOf(item.isOddSwipes()),
                     String.valueOf(item.isFlagForFirstSwipeAfter11AM()), String.valueOf(item.isFlagForLastSwipeAfter10PM()), item.getInTimeActualVsInTimeFLDiff(), swipeDetailsStringBuilder.toString()};  // item.getSwipeDetails().toString()
 
@@ -431,7 +435,7 @@ public class CSVReadService {
             csvWriter.close();
             workbook.close();
 
-            // Calling readCsvFile()
+            // Step 1: Calling readCsvFile()
             ResponseEntity<InputStreamResource> csvResponse = readCsvFile(new FileInputStream(csvOutputFile));
 
             // Convert CSV response to XLSX response
